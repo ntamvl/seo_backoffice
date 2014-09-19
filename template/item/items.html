@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>項次列表</title>
+</head>
+<style type="text/css">
+.table { display:table; float: left; }
+.tab_tr { display: table-row; }
+.tab_th { display: table-cell; height: 20px; width: 80px; float: left; margin-left: 5px; background-color: #EBF8A4; margin: 1px; text-align: center; font-size: bold; font-family: 'Arial'; font-size: 16px; }
+.tab_td { display: table-cell; height: 20px; width: 80px; float: left; margin-left: 5px; background-color: #DFDFDF; margin: 1px; font-family: 'Arial'; font-size: 14px; line-height: 16px; }
+.item_name { width: 180px; }
+
+#modify_form { float: right; border: 1px solid black; }
+</style>
+<body>
+	<div id="contents">
+		<input type="button" id="create" value="新增檢查項" /><br />
+		<div class="table">
+			<div class="tab_tr">
+				<div class="tab_th item_name">測項名稱</div>
+				<div class="tab_th">開放狀態</div>
+				<div class="tab_th">重要性</div>
+				<div class="tab_th">權重比分</div>
+				<div class="tab_th"></div>
+			</div>
+			<[ foreach from=$items key=key item=items ]>
+			<div class="tab_tr">
+				<div class="tab_td title" id="item_<[$key|htmlspecialchars]>"><[$items.name|htmlspecialchars]></div>
+				<div class="tab_td"><[$items.release_status|htmlspecialchars]></div>
+				<div class="tab_td"><[$items.critical_status|htmlspecialchars]></div>
+				<div class="tab_td"><[$items.score|htmlspecialchars]></div>
+				<div class="tab_td"><[$items.id|htmlspecialchars]></div>
+			</div>
+			<[ /foreach ]>
+		</div>
+
+	<div id="modify_form_normal" title="修改測項內容">
+		<input type="hidden" id="target_id" value="" />
+		<table id="internal_data">
+			<caption>內部相關欄位</caption>
+			<tr>
+				<th>類別</th><td><span class="cname"></span></td>
+			</tr>
+			<tr>
+				<th>測項名</th><td><input type="text" value="" class="title" /></td>
+			</tr>
+			<tr>
+				<th>測項描述</th><td><textarea cols="40" rows="5" class="description" /></textarea></td>
+			</tr>
+			<tr>
+				<th>測項建議</th><td><textarea cols="40" rows="5" class="solution" /></textarea></td>
+			</tr>
+		</table>
+		<hr>
+		<table id="external_data">
+			<caption>外部相關欄位</caption>
+			<tr>
+				<th>類別</th><td><span class="category"></span></td>
+			</tr>
+			<tr>
+				<th>測項名</th><td><input type="text" value="" class="title" /></td>
+			</tr>
+			<tr>
+				<th>測項描述</th><td><textarea cols="40" rows="5" class="description" /></textarea></td>
+			</tr>
+			<tr>
+				<th>測項建議</th><td><textarea cols="40" rows="5" class="solution" /></textarea></td>
+			</tr>
+		</table>
+		<hr>
+		<table id="common_data">
+			<caption>共通欄位</caption>
+			<tr>
+				<th>功能名稱(RD用)</th><td><input type="text" value="" id="func_name" /></td>
+			</tr>
+			<tr>
+				<th>開放權限</th><td><input type="text" value="" id="release_status" /></td>
+			</tr>
+			<tr>
+				<th>重要性</th><td><input type="text" value="" id="critical_status" /></td>
+			</tr>
+			<tr>
+				<th>分數(權重)</th><td><input type="text" value="" id="score" /></td>
+			</tr>
+		</table>
+	</div>
+	</div>
+
+</body>
+</html>
+
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+<script src="http://malsup.github.io/jquery.blockUI.js"></script>
+<script type="text/javascript">
+$('.item_name').click(function() {
+	var id = $(this).attr('id');
+	id = id.replace('item_', '');
+	getItemInfo(id);
+});
+
+function getItemInfo(id) {
+	$.ajax({
+		type: "POST",
+		url: "/backoffice/items/getTargetItem/",
+		data: {id: id},
+		dataType: "json",
+		success: function(data) {
+			/*$('#internal_data .category').text(data.category_in);
+			$('#internal_data .item_title').val(data.title_inside);
+			$('#internal_data .item_description').text(data.description_inside);
+			$('#internal_data .item_solution_inside').text(data.solution_inside);
+
+			$('#external_data .category').text(data.category_out);
+			$('#external_data .item_title').val(data.title_outside);
+			$('#external_data .item_description').text(data.description_outside);
+			$('#external_data .item_solution_inside').text(data.solution_outside);*/
+			$.each(data, function(area, info) {
+				if (area == 'normal') {
+
+				}
+				else {
+					$.each(info, function(key, value) {
+						var name_value = eval(info.)
+						$('#' + area + ' .' + key).text(info)
+					});
+				}
+			});
+			console.log(data);
+		}
+	});
+}
+</script>

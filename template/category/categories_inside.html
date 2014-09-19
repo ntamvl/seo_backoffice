@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>類別列表 - 內部</title>
+</head>
+<style type="text/css">
+#contents { width: 800px; }
+.main_area { float: left; margin: 10px auto; width: 500px; background-color: #EEEEEE; }
+.main_category { float: left; margin-left: 20px; width: 480px; background-color: #CCCCCC; }
+.sub_category { float: left; margin-left: 50px; width: 450px; }
+.buttons { float: right; }
+
+a:link { color: #000000; }
+a:visited { color: #000000; }
+a:hover { font-weight: bold; }
+a:active { font-weight: bold; }
+
+#modify_form { display: none; text-align: left; padding: 10px; }
+#modify_form input[type="text"] { width: 300px; }
+</style>
+
+<body>
+	<div id="contents">
+	<input id="create_main" type="button" value="新增母項目" /><br />
+	<[ foreach from=$cate_datas key=key item=cate_data ]>
+	<div class="main_area">
+		<div class="main_category" id="main_<[$cate_data.id|htmlspecialchars]>">
+			<a class="category_title"><[$cate_data.title|htmlspecialchars]></a>
+			<div class="buttons">
+				<input class="delete" type="button" value="刪除" />
+				<input class="create" type="button" value="新增子項目" />
+			</div>
+		</div>
+		
+		<[  foreach from=$cate_data.sub_category key=key item=sub_category ]>
+		<div class="sub_category" id="sub_<[$sub_category.id|htmlspecialchars]>">
+			<a class="category_title"><[$sub_category.title|htmlspecialchars]></a>
+			<div class="buttons">
+				<input class="delete" type="button" value="刪除" />
+			</div>
+		</div>
+		<[ /foreach ]>
+	</div>
+	<[ /foreach ]>
+	</div>
+
+	<div id="modify_form" title="修改類別內容">
+		<input type="hidden" id="target_id" value="" />
+		標題 <input type="text" name="title" id="title" value="" /> <br />
+		說明 <textarea name="description" id="description" rows="4" cols="50"></textarea>
+
+		<input type="button" value="修改" id="update" />
+		<!--input type="button" value="取消" id="cancel" /-->
+	</div>
+
+</body>
+</html>
+
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+<script src="http://malsup.github.io/jquery.blockUI.js"></script>
+<script type="text/javascript">
+$('#create_main').click(function() {
+	newCategory(0);
+});
+
+$('.create').click(function() {
+	var pid = $(this).parent().parent().attr('id');
+	pid = pid.replace('main_', '');
+	newCategory(pid);
+});
+
+$('.delete').click(function() {
+	var cid = $(this).parent().parent().attr('id');
+	var res = cid.split('_');
+	if (res[0] == 'main') alert('母項目不可刪除');
+	else if (res[0] == 'sub') {
+		if (confirm('確定要刪除此項目?')) {
+			deleteCategory(res[1]);
+		}
+	}
+});
+
+$('.category_title').click(function() {
+	var cid = $(this).parent().attr('id');
+	var res = cid.split('_');
+	get_category_info(res[1]);
+
+	/*$('#target_id').val(res[1]);
+	$('#title').val(text);
+	var position = $(this).position();
+	var a_width = $(this).width() + 25;
+	$('#modify_form').removeAttr('display');
+
+	$.blockUI({
+		message: $('#modify_form'),
+		css: {
+
+			width: '450px',
+			height: '150px',
+			backgroundColor: '#D8E6EC',
+			'-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+			top: parseInt(($(window).height() / 2) - (150 / 2)) + 'px',
+			left: parseInt(($(window).width() / 2) - (450 / 2)) + 'px'
+		},
+		onOverlayClick: $.unblockUI
+	});*/
+});
+
+/*$('.category_title').click(function() {
+	var cid = $(this).parent().attr('id');
+	var res = cid.split('_');
+	var text = $('#' + cid + ' a').text();
+	$(this).replaceWith("<input id='target_title' value='" + text + "'></input>");
+});*/
+
+$('#update').click(function() {
+	updateCategory();
+});
+
+function get_category_info(id) {
+	$.ajax({
+	    type: "POST",
+	    url: "/backoffice/categories_inside/getTargetCategory/",
+	    data: {id: id},
+	    dataType: "json",
+	    success: function(data) {
+	    	$('#target_id').val(data.id);
+			$('#title').val(data.title);
+			$('#description').val(data.description);
+			showEditorForm(id, title, description);
+	    }
+	});
+}
+
+function newCategory(pid) {
+	$.post(
+		'/backoffice/categories_inside/newCategory/',
+		{ parent_id: pid },
+		function() {
+			location.reload();
+		}
+	);
+}
+
+function deleteCategory(cid) {
+	$.post(
+		'/backoffice/categories_inside/deleteCategory/',
+		{ id: cid },
+		function(data) {
+			alert(data);
+			location.reload();
+		}
+	);
+}
+
+function updateCategory() {
+	$.post(
+		'/backoffice/categories_inside/updateCategory/',
+		{
+			id: $('#target_id').val(),
+			title: $('#title').val(),
+			description: $('#description').val()
+		},
+		function() { location.reload(); }
+	);
+}
+
+function showEditorForm() {
+	$('#modify_form').removeAttr('display');
+
+	$.blockUI({
+		message: $('#modify_form'),
+		css: {
+			width: '450px',
+			height: '150px',
+			backgroundColor: '#D8E6EC',
+			'-webkit-border-radius': '10px',
+            '-moz-border-radius': '10px',
+			top: parseInt(($(window).height() / 2) - (150 / 2)) + 'px',
+			left: parseInt(($(window).width() / 2) - (450 / 2)) + 'px'
+		},
+		onOverlayClick: $.unblockUI
+	});
+}
+</script>
